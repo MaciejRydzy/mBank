@@ -16,7 +16,8 @@ wek_dni_w_roku <- c(rep(365, times=4), rep(rep(c(365,366,365,365), each=12), len
 oprocentowanie_raty_mB <- rep(c(3.05, 3.35, 3.65, 3.95, 3.70, 3.55, 3.25, 2.35), times=c(3,2,6,20,10,6,55,70))
 raty_pobrane_mB <- rep(c(306.84, 306.83, 306.84, 318.53, 330.45, 342.35, 332.86, 327.42, 316.68, 290.48), times=c(1,1,1,2,6,20,10,6,55,70))
 
-
+# wczytanie danych z kursami walut
+kursy_walut <- read.csv('~/R/mBank/kursy_walut.csv', header = TRUE)
 
 
 ##########################################
@@ -128,3 +129,20 @@ splacony_kapital <- sum(harmonogram[1:174,2])
 kapital_do_splaty <- kapital_poczatkowy - splacony_kapital
 cat("splacony_kapital =", splacony_kapital, "\n")
 cat("kapital_do_splaty =", kapital_do_splaty, "\n")
+
+
+
+
+##########################################
+#
+#         wyliczenie nadplaty
+#
+##########################################
+# raty 1 do 82 liczone po kursie mBanku
+nadplata_PLN_mBank <- round(harmonogram[1:82,5] * kursy_walut[1:82,4], digits = 2)
+
+# od raty 83 splata bezposrednio w CHF, nadplata liczona po kursie srednim NBP
+nadplata_PLN_NBP <- round(harmonogram[83:174,5] * kursy_walut[83:174,3], digits = 2)
+
+nadplata_PLN <- c(nadplata_PLN_mBank, nadplata_PLN_NBP)
+cat("nadplata =", sum(nadplata_PLN), " PLN\n")
