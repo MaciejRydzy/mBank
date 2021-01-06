@@ -54,7 +54,12 @@ cat("rata_kapitalowa[1] =", rata_kapitalowa, "\n")
 kapital <- kapital_poczatkowy - rata_kapitalowa
 cat("kapital_do_splaty[1] =", kapital, "\n\n")
 
-harmonogram <- data.frame(data = data_ksiegowania[1], rata = rata_calkowita + round(as.vector(rata_odsetkowa["cze"]), digits = 2), kapital = as.vector(rata_kapitalowa), odsetki = round(sum(rata_odsetkowa), digits = 2), kapital_do_splaty = kapital, nadplata = 0)
+harmonogram <- data.frame(termin_splaty = data_ksiegowania[1], 
+                          kwota_kapitalu = as.vector(rata_kapitalowa),
+                          kwota_odsetek = round(sum(rata_odsetkowa), digits = 2),
+                          kwota_raty_lacznie = rata_calkowita + round(as.vector(rata_odsetkowa["cze"]), digits = 2),
+                          saldo_zadluzenia_po_splacie_raty = kapital, 
+                          nadplata = 0)
 
 
 
@@ -99,7 +104,12 @@ rata_calkowita_mB <- round(rata_calkowita_mB[2], digits = 2)
 nadplata <- rata_calkowita_mB - rata_calkowita
 cat("nadplata[2] =", nadplata, "\n\n")
 
-harmonogram <- rbind(harmonogram, data.frame(data = data_ksiegowania[2], rata = rata_calkowita, kapital = rata_kapitalowa, odsetki = rata_odsetkowa, kapital_do_splaty = kapital, nadplata = nadplata))
+harmonogram <- rbind(harmonogram, data.frame(termin_splaty = data_ksiegowania[2],
+                                             kwota_kapitalu = rata_kapitalowa,
+                                             kwota_odsetek = rata_odsetkowa,
+                                             kwota_raty_lacznie = rata_calkowita,
+                                             saldo_zadluzenia_po_splacie_raty = kapital, 
+                                             nadplata = nadplata))
 
 
 
@@ -126,11 +136,16 @@ for(rata in 3:359) {
   rata_kapitalowa <- rata_calkowita - rata_odsetkowa
   kapital <- kapital - rata_kapitalowa
   
-  harmonogram <- rbind(harmonogram, data.frame(data = data_ksiegowania[rata], rata = rata_calkowita, kapital = rata_kapitalowa, odsetki = rata_odsetkowa, kapital_do_splaty = kapital, nadplata = raty_pobrane[rata] - rata_calkowita))
+  harmonogram <- rbind(harmonogram, data.frame(termin_splaty = data_ksiegowania[rata],
+                                               kwota_kapitalu = rata_kapitalowa,
+                                               kwota_odsetek = rata_odsetkowa,
+                                               kwota_raty_lacznie = rata_calkowita,
+                                               saldo_zadluzenia_po_splacie_raty = kapital, 
+                                               nadplata = raty_pobrane[rata] - rata_calkowita))
 }
 
 cat("-----  stan na 01.01.2021  -----\n")
-splacony_kapital <- sum(harmonogram$kapital[1:174])
+splacony_kapital <- sum(harmonogram$kwota_kapitalu[1:174])
 kapital_do_splaty <- kapital_poczatkowy - splacony_kapital
 cat("splacony_kapital =", splacony_kapital, "\n")
 cat("kapital_do_splaty =", kapital_do_splaty, "\n")
