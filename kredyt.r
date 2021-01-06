@@ -15,9 +15,8 @@ wek_dni_w_mies <- c(dni_w_roku[7:12], rep(c(dni_w_roku, dni_w_roku_p, dni_w_roku
 # wektor liczby dni w roku dla kolejnej raty
 wek_dni_w_roku <- c(rep(365, times=6), rep(rep(c(365,366,365,365), each=12), length.out=353))
 
-# wektory z ustalonym przez mBank poziomem oprocentowania oraz wysokoscia pobranych rat poczawszy od raty #3
-oprocentowanie_raty_mB <- rep(c(3.45, 3.75, 3.05, 3.35, 3.65, 3.95, 3.70, 3.55, 3.25, 2.35), times=c(1,1,3,2,6,20,10,6,55,70))
-raty_pobrane_mB <- rep(c(479.42, 334.69, 306.84, 306.83, 306.84, 318.53, 330.45, 342.35, 332.86, 327.42, 316.68, 290.48), times=c(1,1,1,1,1,2,6,20,10,6,55,70))
+# wektory z wysokoscia rat pobranych przez mBank
+raty_pobrane <- rep(c(479.42, 334.69, 306.84, 306.83, 306.84, 318.53, 330.45, 342.35, 332.86, 327.42, 316.68, 290.48), times=c(1,1,1,1,1,2,6,20,10,6,55,70))
 
 # wczytanie danych z kursami walut
 kursy_walut <- read.csv('~/R/mBank/kursy_walut.csv', header = TRUE)
@@ -100,7 +99,7 @@ rata_calkowita_mB <- round(rata_calkowita_mB[2], digits = 2)
 nadplata <- rata_calkowita_mB - rata_calkowita
 cat("nadplata[2] =", nadplata, "\n\n")
 
-harmonogram <- rbind(harmonogram, data.frame(data = data_ksiegowania[2], rata = rata_calkowita[], kapital = rata_kapitalowa, odsetki = rata_odsetkowa, kapital_do_splaty = kapital, nadplata = nadplata))
+harmonogram <- rbind(harmonogram, data.frame(data = data_ksiegowania[2], rata = rata_calkowita, kapital = rata_kapitalowa, odsetki = rata_odsetkowa, kapital_do_splaty = kapital, nadplata = nadplata))
 
 
 
@@ -127,7 +126,7 @@ for(rata in 3:359) {
   rata_kapitalowa <- rata_calkowita - rata_odsetkowa
   kapital <- kapital - rata_kapitalowa
   
-  harmonogram <- rbind(harmonogram, data.frame(data = data_ksiegowania[rata], rata = rata_calkowita, kapital = rata_kapitalowa, odsetki = rata_odsetkowa, kapital_do_splaty = kapital, nadplata = raty_pobrane_mB[rata] - rata_calkowita))
+  harmonogram <- rbind(harmonogram, data.frame(data = data_ksiegowania[rata], rata = rata_calkowita, kapital = rata_kapitalowa, odsetki = rata_odsetkowa, kapital_do_splaty = kapital, nadplata = raty_pobrane[rata] - rata_calkowita))
 }
 
 cat("-----  stan na 01.01.2021  -----\n")
