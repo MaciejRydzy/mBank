@@ -1,14 +1,17 @@
 library(FinancialMath)
 
+# liczba dotad splaconych rat
+lba_splaconych_rat <- 174
+
 # wektor liczby dni w miesiacu: rok zwykly
 dni_w_roku <- c(31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
 
 # wektor liczby dni w miesiacu: rok przestepny
-dni_w_roku_p <- dni_w_roku
-dni_w_roku_p[2] <- 29
+dni_w_roku_p <- replace(dni_w_roku, dni_w_roku==28, 29)
 
 # wektor liczby dni w miesiacu dla kolejnej raty
 wek_dni_w_mies <- c(dni_w_roku[9:12], rep(c(dni_w_roku, dni_w_roku_p, dni_w_roku, dni_w_roku), length.out=355))
+
 # wektor liczby dni w roku dla kolejnej raty
 wek_dni_w_roku <- c(rep(365, times=4), rep(rep(c(365,366,365,365), each=12), length.out=355))
 
@@ -125,7 +128,7 @@ for(rata in 1:length(wek_dni_w_mies)) {
 }
 
 cat("-----  stan na 01.01.2021  -----\n")
-splacony_kapital <- sum(harmonogram[1:174,2])
+splacony_kapital <- sum(harmonogram[1:lba_splaconych_rat,2])
 kapital_do_splaty <- kapital_poczatkowy - splacony_kapital
 cat("splacony_kapital =", splacony_kapital, "\n")
 cat("kapital_do_splaty =", kapital_do_splaty, "\n")
@@ -142,7 +145,7 @@ cat("kapital_do_splaty =", kapital_do_splaty, "\n")
 nadplata_PLN_mBank <- round(harmonogram[1:82,5] * kursy_walut[1:82,4], digits = 2)
 
 # od raty 83 splata bezposrednio w CHF, nadplata liczona po kursie srednim NBP
-nadplata_PLN_NBP <- round(harmonogram[83:174,5] * kursy_walut[83:174,3], digits = 2)
+nadplata_PLN_NBP <- round(harmonogram[83:lba_splaconych_rat,5] * kursy_walut[83:lba_splaconych_rat,3], digits = 2)
 
 nadplata_PLN <- c(nadplata_PLN_mBank, nadplata_PLN_NBP)
-cat("nadplata =", sum(nadplata_PLN), " PLN\n")
+cat("nadplata =", sum(nadplata_PLN), "PLN\n")
