@@ -10,17 +10,20 @@ dni_w_roku <- c(31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
 dni_w_roku_p <- replace(dni_w_roku, dni_w_roku==28, 29)
 
 # wektor liczby dni w miesiacu dla kolejnej raty
-wek_dni_w_mies <- c(dni_w_roku[9:12], rep(c(dni_w_roku, dni_w_roku_p, dni_w_roku, dni_w_roku), length.out=355))
+wek_dni_w_mies <- c(dni_w_roku[7:12], rep(c(dni_w_roku, dni_w_roku_p, dni_w_roku, dni_w_roku), length.out=353))
 
 # wektor liczby dni w roku dla kolejnej raty
-wek_dni_w_roku <- c(rep(365, times=4), rep(rep(c(365,366,365,365), each=12), length.out=355))
+wek_dni_w_roku <- c(rep(365, times=6), rep(rep(c(365,366,365,365), each=12), length.out=353))
 
 # wektory z ustalonym przez mBank poziomem oprocentowania oraz wysokoscia pobranych rat poczawszy od raty #3
-oprocentowanie_raty_mB <- rep(c(3.05, 3.35, 3.65, 3.95, 3.70, 3.55, 3.25, 2.35), times=c(3,2,6,20,10,6,55,70))
-raty_pobrane_mB <- rep(c(306.84, 306.83, 306.84, 318.53, 330.45, 342.35, 332.86, 327.42, 316.68, 290.48), times=c(1,1,1,2,6,20,10,6,55,70))
+oprocentowanie_raty_mB <- rep(c(3.45, 3.75, 3.05, 3.35, 3.65, 3.95, 3.70, 3.55, 3.25, 2.35), times=c(1,1,3,2,6,20,10,6,55,70))
+raty_pobrane_mB <- rep(c(479.42, 334.69, 306.84, 306.83, 306.84, 318.53, 330.45, 342.35, 332.86, 327.42, 316.68, 290.48), times=c(1,1,1,1,1,2,6,20,10,6,55,70))
 
 # wczytanie danych z kursami walut
 kursy_walut <- read.csv('~/R/mBank/kursy_walut.csv', header = TRUE)
+
+# daty ksiegowania rat
+data_ksiegowania <- as.vector(kursy_walut$data)
 
 
 ##########################################
@@ -52,7 +55,7 @@ cat("rata_kapitalowa[1] =", rata_kapitalowa, "\n")
 kapital <- kapital_poczatkowy - rata_kapitalowa
 cat("kapital_do_splaty[1] =", kapital, "\n\n")
 
-harmonogram <- data.frame(rata = rata_calkowita + round(as.vector(rata_odsetkowa["cze"]), digits = 2), kapital = as.vector(rata_kapitalowa), odsetki = round(sum(rata_odsetkowa), digits = 2), kapital_do_splaty = kapital, nadplata = 0)
+harmonogram <- data.frame(data = data_ksiegowania[1], rata = rata_calkowita + round(as.vector(rata_odsetkowa["cze"]), digits = 2), kapital = as.vector(rata_kapitalowa), odsetki = round(sum(rata_odsetkowa), digits = 2), kapital_do_splaty = kapital, nadplata = 0)
 
 
 
@@ -97,7 +100,7 @@ rata_calkowita_mB <- round(rata_calkowita_mB[2], digits = 2)
 nadplata <- rata_calkowita_mB - rata_calkowita
 cat("nadplata[2] =", nadplata, "\n\n")
 
-harmonogram <- rbind(harmonogram, data.frame(rata = rata_calkowita[], kapital = rata_kapitalowa, odsetki = rata_odsetkowa, kapital_do_splaty = kapital, nadplata = nadplata))
+harmonogram <- rbind(harmonogram, data.frame(data = data_ksiegowania[2], rata = rata_calkowita[], kapital = rata_kapitalowa, odsetki = rata_odsetkowa, kapital_do_splaty = kapital, nadplata = nadplata))
 
 
 
@@ -119,16 +122,16 @@ rata_calkowita <- round(rata_calkowita[2], digits = 2)
 cat("rata_calkowita =", rata_calkowita, "\n\n")
 
 # wyliczenie pozostalej czesci harmonogramu
-for(rata in 1:length(wek_dni_w_mies)) {
+for(rata in 3:359) {
   rata_odsetkowa <- round(kapital * oprocentowanie * wek_dni_w_mies[rata] / wek_dni_w_roku[rata], digits = 2)
   rata_kapitalowa <- rata_calkowita - rata_odsetkowa
   kapital <- kapital - rata_kapitalowa
-
-  harmonogram <- rbind(harmonogram, data.frame(rata = rata_calkowita, kapital = rata_kapitalowa, odsetki = rata_odsetkowa, kapital_do_splaty = kapital, nadplata = raty_pobrane_mB[rata] - rata_calkowita))
+  
+  harmonogram <- rbind(harmonogram, data.frame(data = data_ksiegowania[rata], rata = rata_calkowita, kapital = rata_kapitalowa, odsetki = rata_odsetkowa, kapital_do_splaty = kapital, nadplata = raty_pobrane_mB[rata] - rata_calkowita))
 }
 
 cat("-----  stan na 01.01.2021  -----\n")
-splacony_kapital <- sum(harmonogram[1:lba_splaconych_rat,2])
+splacony_kapital <- sum(harmonogram$kapital[1:174])
 kapital_do_splaty <- kapital_poczatkowy - splacony_kapital
 cat("splacony_kapital =", splacony_kapital, "\n")
 cat("kapital_do_splaty =", kapital_do_splaty, "\n")
@@ -142,10 +145,10 @@ cat("kapital_do_splaty =", kapital_do_splaty, "\n")
 #
 ##########################################
 # raty 1 do 82 liczone po kursie mBanku
-nadplata_PLN_mBank <- round(harmonogram[1:82,5] * kursy_walut[1:82,4], digits = 2)
+nadplata_PLN_mBank <- round(harmonogram$nadplata[1:82] * kursy_walut$kurs.mBank[1:82], digits = 2)
 
 # od raty 83 splata bezposrednio w CHF, nadplata liczona po kursie srednim NBP
-nadplata_PLN_NBP <- round(harmonogram[83:lba_splaconych_rat,5] * kursy_walut[83:lba_splaconych_rat,3], digits = 2)
+nadplata_PLN_NBP <- round(harmonogram$nadplata[83:lba_splaconych_rat] * kursy_walut$kurs.NBP[83:lba_splaconych_rat], digits = 2)
 
 nadplata_PLN <- c(nadplata_PLN_mBank, nadplata_PLN_NBP)
-cat("nadplata =", sum(nadplata_PLN), "PLN\n")
+cat("nadplata =", sum(nadplata_PLN, na.rm=TRUE), "PLN\n")
