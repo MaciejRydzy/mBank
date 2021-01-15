@@ -15,6 +15,9 @@ wek_dni_w_mies <- c(dni_w_roku[7:12], rep(c(dni_w_roku, dni_w_roku_p, dni_w_roku
 # wektor liczby dni w roku dla kolejnej raty
 wek_dni_w_roku <- c(rep(365, times=6), rep(rep(c(365,366,365,365), each=12), length.out=353))
 
+# na podstawie § 11 ust 7 rok liczy zawsze 365 dni
+dni_w_roku_sum <- sum(dni_w_roku)
+
 # wektory z wysokoscia rat pobranych przez mBank
 raty_pobrane <- rep(c(479.42, 334.69, 306.84, 306.83, 306.84, 318.53, 330.45, 342.35, 332.86, 327.42, 316.68, 290.48), times=c(1,1,1,1,1,2,6,20,10,6,55,70))
 
@@ -132,7 +135,7 @@ cat("rata_calkowita =", rata_calkowita, "\n\n")
 
 # wyliczenie pozostalej czesci harmonogramu
 for(rata in 3:359) {
-  rata_odsetkowa <- round(kapital * oprocentowanie * wek_dni_w_mies[rata] / wek_dni_w_roku[rata], digits = 2)
+  rata_odsetkowa <- round(kapital * oprocentowanie * wek_dni_w_mies[rata] / dni_w_roku_sum, digits = 2)
   rata_kapitalowa <- rata_calkowita - rata_odsetkowa
   kapital <- kapital - rata_kapitalowa
   
