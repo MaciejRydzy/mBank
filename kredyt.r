@@ -46,7 +46,7 @@ rata_calkowita <- amort.period(Loan = kapital_poczatkowy, n = poz_lba_rat, i = o
 rata_calkowita <- round(rata_calkowita[2], digits = 2)
 
 # wyliczenie raty odsetkowej: suma odsetek w miesiącach czerwiec oraz lipiec
-rata_odsetkowa <- dni_w_mcu / 365 * kapital_poczatkowy * oprocentowanie
+rata_odsetkowa <- dni_w_mcu / dni_w_roku_sum * kapital_poczatkowy * oprocentowanie
 cat("rata_odsetkowa[1] =", round(sum(rata_odsetkowa), digits = 2), "\n")
 
 # wyliczenie raty kapitalowej
@@ -82,7 +82,7 @@ cat("-----------  rata #2  -----------\n")
 
 # wyliczenie raty calkowitej
 oprocentowanie <- oprocentowanie / 100
-dni_oprocentowania <- dni_oprocentowania / 365
+dni_oprocentowania <- dni_oprocentowania / dni_w_roku_sum
 rata_calkowita <- amort.period(Loan = kapital, n = poz_lba_rat, i = oprocentowanie[1], ic = 12, pf = 12)
 rata_calkowita <- round(rata_calkowita[2], digits = 2)
 
@@ -148,7 +148,7 @@ for(rata in 3:359) {
 }
 
 cat("-----  stan na 01.01.2021  -----\n")
-splacony_kapital <- sum(harmonogram$kwota_kapitalu[1:174])
+splacony_kapital <- sum(harmonogram$kwota_kapitalu[1:lba_splaconych_rat])
 kapital_do_splaty <- kapital_poczatkowy - splacony_kapital
 cat("splacony_kapital =", splacony_kapital, "\n")
 cat("kapital_do_splaty =", kapital_do_splaty, "\n")
