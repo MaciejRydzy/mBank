@@ -9,12 +9,12 @@ dni_w_roku_p <- replace(dni_w_roku, dni_w_roku==28, 29)
 # dane wejsciowe dla kredytu
 dzien_splaty <- 5
 transza <- c(12155.37, 12482.28, 12873.94, 12821.8, 12860.73, 12856.88, 12682.3, 23006.46)
-oprocentowanie_mB <- c(3.75, 4.05, 4.35)
+oprocentowanie_mB <- c(3.75, 4.05, 4.35, 4.60, 3.60, 3.95, 3.70, 3.55, 3.25, 2.35)
 
 # wybor pomiedzy oprocentowaniem narzuconym przez mBank a oprocentowaniem stalym
 # tylko jedna linia ma byc odkomentowana!
-# oprocentowanie <- oprocentowanie_mB # oprocentowanie mBanku
-oprocentowanie <- rep_len(oprocentowanie_mB[1], length(oprocentowanie_mB)) # oprocentowanie stale
+oprocentowanie <- oprocentowanie_mB # oprocentowanie mBanku
+# oprocentowanie <- rep_len(oprocentowanie_mB[1], length(oprocentowanie_mB)) # oprocentowanie stale
 
 # wartosci poczatkowe
 kapital <- transza[1]
@@ -30,9 +30,12 @@ oprocentowanie <- oprocentowanie / 100
 # kapital 24637.65 od 11/10/2006 
 #
 ##########################################
+rata_odsetkowa <- (dni_w_roku[9] - 11 + 10) / 365 * kapital * oprocentowanie[1]
 kapital <- kapital + transza[2]
+rata_odsetkowa <- rata_odsetkowa + (dni_w_roku[10] - 11 + 1 + dzien_splaty) / 365 * kapital * oprocentowanie[1]
+
 harmonogram <- data.frame(kwota_kapitalu = 0,
-                          kwota_odsetek = NA,
+                          kwota_odsetek = round(rata_odsetkowa, digits = 2),
                           saldo_zadluzenia_po_splacie_raty = kapital)
 
 
@@ -130,3 +133,5 @@ rata_odsetkowa <- rata_odsetkowa + (dni_w_roku[3] - 9 + 1 + dzien_splaty) / 365 
 harmonogram <- rbind(harmonogram, data.frame(kwota_kapitalu = 0,
                                              kwota_odsetek = round(rata_odsetkowa, digits = 2),
                                              saldo_zadluzenia_po_splacie_raty = kapital))
+
+# rata_calkowita <- amort.period(Loan = kapital, n = 359, i = oprocentowanie[3], ic = 12, pf = 12)
