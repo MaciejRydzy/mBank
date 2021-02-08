@@ -9,13 +9,10 @@ dni_w_roku_p <- replace(dni_w_roku, dni_w_roku==28, 29)
 # dane wejsciowe dla kredytu
 dzien_splaty <- 5
 transza <- c(12155.37, 12482.28, 12873.94, 12821.8, 12860.73, 12856.88, 12682.3, 23006.46)
-oprocentowanie_mB <- rep(c(3.75, 4.05, 4.35, 4.60, 3.60), times=c(2, 2, 9, 10, 2))
+oprocentowanie_mB <- rep(c(3.75, 4.05, 4.35, 4.60, 3.60, 3.95), times=c(2, 2, 9, 10, 2, 5))
 
 # wektor liczby dni w miesiacu dla kolejnej raty
 wek_dni_w_mies <- c(dni_w_roku[10:12], rep(c(dni_w_roku, dni_w_roku_p, dni_w_roku, dni_w_roku), length.out=356))
-
-# wektor z wysokoscia i krotnoscia rat pobranych przez mBank
-rata_pobrana <- rep(c(102.03, 102.39, 171.71, 211.66, 249.18, 440.83, 445.37, 458.35, 409.06), times=c(rep(1, 6), 7, 10, 2))
 
 # wybor pomiedzy oprocentowaniem narzuconym przez mBank a oprocentowaniem stalym
 # tylko jedna linia ma byc odkomentowana!
@@ -171,9 +168,12 @@ harmonogram <- rbind(harmonogram, data.frame(rata_calkowita = sum(rata_kapitalow
 #                rata 7+
 #
 ##########################################
-for(rata in 7:25) {
+for(rata in 7:27) {
+  if (oprocentowanie[rata] != oprocentowanie[rata - 1]) {
+    rata_calkowita <- round(amort.period(Loan = kapital, n = 360 - rata, i = oprocentowanie[rata], ic = 12, pf = 12)[2], digits = 2)
+  }
   rata_odsetkowa <- round(wek_dni_w_mies[rata] / 365 * oprocentowanie[rata] * kapital, digits = 2)
-  rata_kapitalowa <- rata_pobrana[rata] - rata_odsetkowa
+  rata_kapitalowa <- rata_calkowita - rata_odsetkowa
   kapital <- kapital - rata_kapitalowa
   harmonogram <- rbind(harmonogram, data.frame(rata_calkowita = sum(rata_kapitalowa, rata_odsetkowa),
                                                kwota_kapitalu = rata_kapitalowa,
