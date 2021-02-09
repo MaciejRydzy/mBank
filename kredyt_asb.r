@@ -9,7 +9,7 @@ dni_w_roku_p <- replace(dni_w_roku, dni_w_roku==28, 29)
 # dane wejsciowe dla kredytu
 dzien_splaty <- 5
 transza <- c(12155.37, 12482.28, 12873.94, 12821.8, 12860.73, 12856.88, 12682.3, 23006.46)
-oprocentowanie_mB <- rep(c(3.75, 4.05, 4.35, 4.60, 3.60, 3.95), times=c(2, 2, 9, 10, 2, 5))
+oprocentowanie_mB <- rep(c(3.75, 4.05, 4.35, 4.60, 3.60, 3.95, 3.70), times=c(2, 2, 9, 10, 2, 5, 10))
 
 # wektor liczby dni w miesiacu dla kolejnej raty
 wek_dni_w_mies <- c(dni_w_roku[10:12], rep(c(dni_w_roku, dni_w_roku_p, dni_w_roku, dni_w_roku), length.out=356))
@@ -165,10 +165,56 @@ harmonogram <- rbind(harmonogram, data.frame(rata_calkowita = sum(rata_kapitalow
 
 ##########################################
 #
-#                rata 7+
+#                raty 7 -> 27
 #
 ##########################################
 for(rata in 7:27) {
+  if (oprocentowanie[rata] != oprocentowanie[rata - 1]) {
+    rata_calkowita <- round(amort.period(Loan = kapital, n = 360 - rata, i = oprocentowanie[rata], ic = 12, pf = 12)[2], digits = 2)
+  }
+  rata_odsetkowa <- round(wek_dni_w_mies[rata] / 365 * oprocentowanie[rata] * kapital, digits = 2)
+  rata_kapitalowa <- rata_calkowita - rata_odsetkowa
+  kapital <- kapital - rata_kapitalowa
+  harmonogram <- rbind(harmonogram, data.frame(rata_calkowita = sum(rata_kapitalowa, rata_odsetkowa),
+                                               kwota_kapitalu = rata_kapitalowa,
+                                               kwota_odsetek = rata_odsetkowa,
+                                               saldo_zadluzenia_po_splacie_raty = kapital))
+}
+
+
+
+
+##########################################
+#
+#                rata 28
+#
+# za okres od 6/1/2009 do 5/2/2009
+# oprocentowanie 3.95% 
+# kapital 85935.47 do 20/1/2009
+# kapital 108866.67 od 21/1/2009
+#
+##########################################
+rata <- 28
+kapital <- c(kapital, kapital + transza[8] - sum(35.28, 39.98))
+rata_calkowita <- round(amort.period(Loan = kapital[2], n = 360 - rata, i = oprocentowanie[rata], ic = 12, pf = 12)[2], digits = 2)
+rata_odsetkowa_hip <- round(wek_dni_w_mies[rata] / 365 * oprocentowanie[rata] * kapital[2], digits = 2)
+rata_kapitalowa <- rata_calkowita - rata_odsetkowa_hip
+rata_odsetkowa <- round(sum(kapital * c(20 - dzien_splaty, wek_dni_w_mies[rata] - 21 + 1 + dzien_splaty) / 365 * oprocentowanie[rata]), digits = 2)
+kapital <- kapital[2] - rata_kapitalowa
+harmonogram <- rbind(harmonogram, data.frame(rata_calkowita = sum(rata_kapitalowa, rata_odsetkowa),
+                                             kwota_kapitalu = rata_kapitalowa,
+                                             kwota_odsetek = rata_odsetkowa,
+                                             saldo_zadluzenia_po_splacie_raty = kapital))
+
+
+
+
+##########################################
+#
+#                raty 29 -> 
+#
+##########################################
+for(rata in 29:40) {
   if (oprocentowanie[rata] != oprocentowanie[rata - 1]) {
     rata_calkowita <- round(amort.period(Loan = kapital, n = 360 - rata, i = oprocentowanie[rata], ic = 12, pf = 12)[2], digits = 2)
   }
