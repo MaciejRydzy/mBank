@@ -9,7 +9,7 @@ dni_w_roku_p <- replace(dni_w_roku, dni_w_roku==28, 29)
 # dane wejsciowe dla kredytu
 dzien_splaty <- 5
 transza <- c(12155.37, 12482.28, 12873.94, 12821.8, 12860.73, 12856.88, 12682.3, 23006.46)
-oprocentowanie_mB <- rep(c(3.75, 4.05, 4.35, 4.60, 3.60, 3.95, 3.70), times=c(2, 2, 9, 10, 2, 5, 10))
+oprocentowanie_mB <- rep(c(3.75, 4.05, 4.35, 4.60, 3.60, 3.95, 3.70, 3.55, 3.25, 2.35), times=c(2, 2, 9, 10, 2, 5, 10, 6, 55, 64))
 
 # wektor liczby dni w miesiacu dla kolejnej raty
 wek_dni_w_mies <- c(dni_w_roku[10:12], rep(c(dni_w_roku, dni_w_roku_p, dni_w_roku, dni_w_roku), length.out=356))
@@ -216,7 +216,7 @@ harmonogram <- rbind(harmonogram, data.frame(rata_calkowita = sum(rata_kapitalow
 #                raty 29 -> 
 #
 ##########################################
-for(rata in 29:40) {
+for(rata in 29:165) {
   if (oprocentowanie[rata] != oprocentowanie[rata - 1]) {
     rata_calkowita <- round(amort.period(Loan = kapital, n = 360 - rata, i = oprocentowanie[rata], ic = 12, pf = 12)[2], digits = 2)
   }
