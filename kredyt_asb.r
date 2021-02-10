@@ -17,7 +17,7 @@ wek_dni_w_mies <- c(dni_w_roku[10:12], rep(c(dni_w_roku, dni_w_roku_p, dni_w_rok
 # wybor pomiedzy oprocentowaniem narzuconym przez mBank a oprocentowaniem stalym
 # tylko jedna linia ma byc odkomentowana!
 oprocentowanie <- oprocentowanie_mB # oprocentowanie mBanku
-# oprocentowanie <- rep_len(oprocentowanie_mB[1], length(oprocentowanie_mB)) # oprocentowanie stale
+# oprocentowanie <- c(rep_len(oprocentowanie_mB[1], 23), rep_len(oprocentowanie_mB[1] - 1, length(oprocentowanie_mB) - 23)) # oprocentowanie stale
 
 # wartosci poczatkowe
 kapital <- transza[1]
