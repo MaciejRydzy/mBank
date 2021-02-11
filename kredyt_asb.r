@@ -1,5 +1,10 @@
 library(FinancialMath)
 
+# typ modelu:
+# mBank - oprocentowanie zmieniane decyzja zarzadu
+# OSZDPU - Oprocentowanie Stale Z Dnia Podpisania UMOWY
+model_opr <- "mBank"
+
 # wektor liczby dni w miesiacu: rok zwykly
 dni_w_roku <- c(31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
 
@@ -11,13 +16,14 @@ dzien_splaty <- 5
 transza <- c(12155.37, 12482.28, 12873.94, 12821.8, 12860.73, 12856.88, 12682.3, 23006.46)
 oprocentowanie_mB <- rep(c(3.75, 4.05, 4.35, 4.60, 3.60, 3.95, 3.70, 3.55, 3.25, 2.35), times=c(2, 2, 9, 10, 2, 5, 10, 6, 55, 64))
 
+# wektor z wysokoscia i krotnoscia rat pobranych przez mBank
+rata_pobrana <- rep(c(102.03, 102.39, 171.71, 211.66, 249.18, 440.83, 445.37, 458.35, 458.36, 409.06, 425.92, 502.35, 539.58, 524.4, 515.76, 498.71, 457.04), times=c(rep(1, 6), 7, 9, 1, 2, 2, 1, 2, 10, 6, 55, 64))
+
 # wektor liczby dni w miesiacu dla kolejnej raty
 wek_dni_w_mies <- c(dni_w_roku[10:12], rep(c(dni_w_roku, dni_w_roku_p, dni_w_roku, dni_w_roku), length.out=356))
 
-# wybor pomiedzy oprocentowaniem narzuconym przez mBank a oprocentowaniem stalym
-# tylko jedna linia ma byc odkomentowana!
-oprocentowanie <- oprocentowanie_mB # oprocentowanie mBanku
-# oprocentowanie <- c(rep_len(oprocentowanie_mB[1], 23), rep_len(oprocentowanie_mB[1] - 1, length(oprocentowanie_mB) - 23)) # oprocentowanie stale
+# ustalenie oprocentowania w zaleznosci od przyjetego modelu
+oprocentowanie <- if (model_opr == "mBank") oprocentowanie_mB else c(rep_len(oprocentowanie_mB[1], 23), rep_len(oprocentowanie_mB[1] - 1, length(oprocentowanie_mB) - 23))
 
 # wartosci poczatkowe
 kapital <- transza[1]
@@ -42,7 +48,8 @@ rata_odsetkowa <- round(rata_odsetkowa, digits = 2)
 harmonogram <- data.frame(rata_calkowita = rata_odsetkowa,
                           kwota_kapitalu = 0,
                           kwota_odsetek = rata_odsetkowa,
-                          saldo_zadluzenia_po_splacie_raty = kapital)
+                          saldo_zadluzenia_po_splacie_raty = kapital,
+                          nadplata = rata_pobrana[rata] - rata_odsetkowa)
 
 
 ##########################################
@@ -63,7 +70,8 @@ rata_odsetkowa <- round(rata_odsetkowa, digits = 2)
 harmonogram <- rbind(harmonogram, data.frame(rata_calkowita = rata_odsetkowa,
                                              kwota_kapitalu = 0,
                                              kwota_odsetek = round(rata_odsetkowa, digits = 2),
-                                             saldo_zadluzenia_po_splacie_raty = kapital))
+                                             saldo_zadluzenia_po_splacie_raty = kapital,
+                                             nadplata = rata_pobrana[rata] - rata_odsetkowa))
 
 
 
@@ -85,7 +93,8 @@ rata_odsetkowa <- round(rata_odsetkowa, digits = 2)
 harmonogram <- rbind(harmonogram, data.frame(rata_calkowita = rata_odsetkowa,
                                              kwota_kapitalu = 0,
                                              kwota_odsetek = round(rata_odsetkowa, digits = 2),
-                                             saldo_zadluzenia_po_splacie_raty = kapital))
+                                             saldo_zadluzenia_po_splacie_raty = kapital,
+                                             nadplata = rata_pobrana[rata] - rata_odsetkowa))
 
 
 
@@ -107,7 +116,8 @@ rata_odsetkowa <- round(rata_odsetkowa, digits = 2)
 harmonogram <- rbind(harmonogram, data.frame(rata_calkowita = rata_odsetkowa,
                                              kwota_kapitalu = 0,
                                              kwota_odsetek = round(rata_odsetkowa, digits = 2),
-                                             saldo_zadluzenia_po_splacie_raty = kapital))
+                                             saldo_zadluzenia_po_splacie_raty = kapital,
+                                             nadplata = rata_pobrana[rata] - rata_odsetkowa))
 
 
 
@@ -130,7 +140,8 @@ rata_odsetkowa <- round(rata_odsetkowa, digits = 2)
 harmonogram <- rbind(harmonogram, data.frame(rata_calkowita = rata_odsetkowa,
                                              kwota_kapitalu = 0,
                                              kwota_odsetek = round(rata_odsetkowa, digits = 2),
-                                             saldo_zadluzenia_po_splacie_raty = kapital))
+                                             saldo_zadluzenia_po_splacie_raty = kapital,
+                                             nadplata = rata_pobrana[rata] - rata_odsetkowa))
 
 
 
@@ -154,10 +165,12 @@ rata_calkowita <- round(amort.period(Loan = kapital, n = 354, i = oprocentowanie
 # rata kapitalowa liczona tak, jakby odsetki przez caly miesiac dotyczyly kwoty po uruchomieniu transza[7]
 rata_kapitalowa <- rata_calkowita - round(wek_dni_w_mies[rata] / 365 * kapital * oprocentowanie[rata], digits = 2)
 kapital <- kapital - rata_kapitalowa
+
 harmonogram <- rbind(harmonogram, data.frame(rata_calkowita = sum(rata_kapitalowa, rata_odsetkowa),
                                              kwota_kapitalu = rata_kapitalowa,
-                                             kwota_odsetek = round(rata_odsetkowa, digits = 2),
-                                             saldo_zadluzenia_po_splacie_raty = kapital))
+                                             kwota_odsetek = rata_odsetkowa,
+                                             saldo_zadluzenia_po_splacie_raty = kapital,
+                                             nadplata = round(rata_pobrana[rata] - sum(rata_kapitalowa, rata_odsetkowa), digits = 2)))
 
 
 
@@ -178,7 +191,8 @@ for(rata in 7:27) {
   harmonogram <- rbind(harmonogram, data.frame(rata_calkowita = sum(rata_kapitalowa, rata_odsetkowa),
                                                kwota_kapitalu = rata_kapitalowa,
                                                kwota_odsetek = rata_odsetkowa,
-                                               saldo_zadluzenia_po_splacie_raty = kapital))
+                                               saldo_zadluzenia_po_splacie_raty = kapital,
+                                               nadplata = rata_pobrana[rata] - rata_calkowita))
 }
 
 
@@ -206,7 +220,8 @@ kapital <- kapital - rata_kapitalowa
 harmonogram <- rbind(harmonogram, data.frame(rata_calkowita = sum(rata_kapitalowa, rata_odsetkowa),
                                              kwota_kapitalu = rata_kapitalowa,
                                              kwota_odsetek = rata_odsetkowa,
-                                             saldo_zadluzenia_po_splacie_raty = kapital))
+                                             saldo_zadluzenia_po_splacie_raty = kapital,
+                                             nadplata = rata_pobrana[rata] - sum(rata_kapitalowa, rata_odsetkowa)))
 
 
 
@@ -226,5 +241,6 @@ for(rata in 29:165) {
   harmonogram <- rbind(harmonogram, data.frame(rata_calkowita = sum(rata_kapitalowa, rata_odsetkowa),
                                                kwota_kapitalu = rata_kapitalowa,
                                                kwota_odsetek = rata_odsetkowa,
-                                               saldo_zadluzenia_po_splacie_raty = kapital))
+                                               saldo_zadluzenia_po_splacie_raty = kapital,
+                                               nadplata = rata_pobrana[rata] - rata_calkowita))
 }
