@@ -30,16 +30,14 @@ kapital <- transza[1]
 oprocentowanie <- oprocentowanie / 100
 
 # funkcja obliczajaca rate odsetkowa w danym okresie dla zmiennego kapitalu
-odsetki_zmiana_kap <- function(oprocentowanie, kapital_poczatkowy, kapital_transza, data_od, data_transza, data_do) {
+odsetki_zmiana_kap <- function(oprocentowanie, kapital_poczatkowy, transza, data_od, data_transza, data_do) {
   # odsetki do momentu powiekszenia kapitalu
-  odsetki <- floor(as.numeric(difftime(strptime(data_transza, format = "%d.%m.%Y"),
-                                strptime(data_od, format = "%d.%m.%Y"),units="days"))) / 365 * kapital_poczatkowy * oprocentowanie
+  odsetki <- as.numeric(as.Date(as.character(data_transza), format="%d.%m.%Y") - as.Date(as.character(data_od), format="%d.%m.%Y")) / 365 * kapital_poczatkowy * oprocentowanie
   
   # odsetki po zwiekszeniu kapitalu
-  odsetki <- odsetki + floor(as.numeric(difftime(strptime(data_do, format = "%d.%m.%Y"),
-                                           strptime(data_transza, format = "%d.%m.%Y"),units="days")) + 1) / 365 * (kapital_poczatkowy + kapital_transza) * oprocentowanie
+  odsetki <- odsetki + as.numeric(as.Date(as.character(data_do), format="%d.%m.%Y") - as.Date(as.character(data_transza), format="%d.%m.%Y") + 1) / 365 * (kapital_poczatkowy + transza) * oprocentowanie
   
-  return(list(kapital = kapital_poczatkowy + kapital_transza, odsetki = round(odsetki, digits = 2)))
+  return(list(kapital = kapital_poczatkowy + transza, odsetki = round(odsetki, digits = 2)))
 }
 
 ##########################################
@@ -55,7 +53,7 @@ odsetki_zmiana_kap <- function(oprocentowanie, kapital_poczatkowy, kapital_trans
 rata <- 1
 przelicz <- odsetki_zmiana_kap(oprocentowanie = oprocentowanie[rata],
                                kapital_poczatkowy = kapital,
-                               kapital_transza = transza[2],
+                               transza = transza[2],
                                data_od = "12.9.2006",
                                data_do = "5.11.2006",
                                data_transza = "11.10.2006")
@@ -80,7 +78,7 @@ harmonogram <- data.frame(rata_calkowita = przelicz$odsetki,
 rata <- 2
 przelicz <- odsetki_zmiana_kap(oprocentowanie = oprocentowanie[rata],
                                kapital_poczatkowy = kapital,
-                               kapital_transza = transza[3],
+                               transza = transza[3],
                                data_od = "6.11.2006",
                                data_do = "5.12.2006",
                                data_transza = "16.11.2006")
@@ -106,7 +104,7 @@ harmonogram <- rbind(harmonogram, data.frame(rata_calkowita = przelicz$odsetki,
 rata <- 3
 przelicz <- odsetki_zmiana_kap(oprocentowanie = oprocentowanie[rata],
                                kapital_poczatkowy = kapital,
-                               kapital_transza = transza[4],
+                               transza = transza[4],
                                data_od = "6.12.2006",
                                data_do = "5.1.2007",
                                data_transza = "7.12.2006")
@@ -131,7 +129,7 @@ harmonogram <- rbind(harmonogram, data.frame(rata_calkowita = przelicz$odsetki,
 rata <- 4
 przelicz <- odsetki_zmiana_kap(oprocentowanie = oprocentowanie[rata],
                                kapital_poczatkowy = kapital,
-                               kapital_transza = transza[5],
+                               transza = transza[5],
                                data_od = "6.1.2007",
                                data_do = "5.2.2007",
                                data_transza = "10.1.2007")
@@ -157,7 +155,7 @@ harmonogram <- rbind(harmonogram, data.frame(rata_calkowita = przelicz$odsetki,
 rata <- 5
 przelicz <- odsetki_zmiana_kap(oprocentowanie = oprocentowanie[rata],
                                kapital_poczatkowy = kapital,
-                               kapital_transza = transza[6],
+                               transza = transza[6],
                                data_od = "6.2.2007",
                                data_do = "5.3.2007",
                                data_transza = "9.2.2007")
@@ -182,20 +180,24 @@ harmonogram <- rbind(harmonogram, data.frame(rata_calkowita = przelicz$odsetki,
 #
 ##########################################
 rata <- 6
-rata_odsetkowa <- (8 - dzien_splaty) / 365 * kapital * oprocentowanie[rata]
-kapital <- kapital + transza[7]
-rata_odsetkowa <- rata_odsetkowa + (wek_dni_w_mies[rata] - 9 + 1 + dzien_splaty) / 365 * kapital * oprocentowanie[rata]
-rata_odsetkowa <- round(rata_odsetkowa, digits = 2)
-rata_calkowita <- round(amort.period(Loan = kapital, n = 354, i = oprocentowanie[rata], ic = 12, pf = 12)[2], digits = 2)
+przelicz <- odsetki_zmiana_kap(oprocentowanie = oprocentowanie[rata],
+                               kapital_poczatkowy = kapital,
+                               transza = transza[7],
+                               data_od = "6.3.2007",
+                               data_do = "5.4.2007",
+                               data_transza = "9.3.2007")
+kapital <- przelicz$kapital
+
 # rata kapitalowa liczona tak, jakby odsetki przez caly miesiac dotyczyly kwoty po uruchomieniu transza[7]
+rata_calkowita <- round(amort.period(Loan = kapital, n = 354, i = oprocentowanie[rata], ic = 12, pf = 12)[2], digits = 2)
 rata_kapitalowa <- rata_calkowita - round(wek_dni_w_mies[rata] / 365 * kapital * oprocentowanie[rata], digits = 2)
 kapital <- kapital - rata_kapitalowa
 
-harmonogram <- rbind(harmonogram, data.frame(rata_calkowita = sum(rata_kapitalowa, rata_odsetkowa),
+harmonogram <- rbind(harmonogram, data.frame(rata_calkowita = sum(rata_kapitalowa, przelicz$odsetki),
                                              kwota_kapitalu = rata_kapitalowa,
-                                             kwota_odsetek = rata_odsetkowa,
+                                             kwota_odsetek = przelicz$odsetki,
                                              saldo_zadluzenia_po_splacie_raty = kapital,
-                                             nadplata = round(rata_pobrana[rata] - sum(rata_kapitalowa, rata_odsetkowa), digits = 2)))
+                                             nadplata = round(rata_pobrana[rata] - sum(rata_kapitalowa, przelicz$odsetki), digits = 2)))
 
 
 
@@ -234,19 +236,23 @@ for(rata in 7:27) {
 #
 ##########################################
 rata <- 28
-rata_odsetkowa <- (20 - dzien_splaty) / 365 * kapital * oprocentowanie[rata]
-kapital <- kapital + transza[8] - sum(35.28, 39.98)
-rata_odsetkowa <- rata_odsetkowa + (wek_dni_w_mies[rata] - 21 + 1 + dzien_splaty) / 365 * kapital * oprocentowanie[rata]
-rata_odsetkowa <- round(rata_odsetkowa, digits = 2)
-rata_calkowita <- round(amort.period(Loan = kapital, n = 360 - rata, i = oprocentowanie[rata], ic = 12, pf = 12)[2], digits = 2)
+przelicz <- odsetki_zmiana_kap(oprocentowanie = oprocentowanie[rata],
+                               kapital_poczatkowy = kapital,
+                               transza = transza[8] - sum(35.28, 39.98),
+                               data_od = "6.1.2009",
+                               data_do = "5.2.2009",
+                               data_transza = "21.1.2009")
+kapital <- przelicz$kapital
+
 # rata kapitalowa liczona tak, jakby odsetki przez caly miesiac dotyczyly kwoty po uruchomieniu transza[8] - sum...
+rata_calkowita <- round(amort.period(Loan = kapital, n = 360 - rata, i = oprocentowanie[rata], ic = 12, pf = 12)[2], digits = 2)
 rata_kapitalowa <- rata_calkowita - round(wek_dni_w_mies[rata] / 365 * oprocentowanie[rata] * kapital, digits = 2)
 kapital <- kapital - rata_kapitalowa
-harmonogram <- rbind(harmonogram, data.frame(rata_calkowita = sum(rata_kapitalowa, rata_odsetkowa),
+harmonogram <- rbind(harmonogram, data.frame(rata_calkowita = sum(rata_kapitalowa, przelicz$odsetki),
                                              kwota_kapitalu = rata_kapitalowa,
-                                             kwota_odsetek = rata_odsetkowa,
+                                             kwota_odsetek = przelicz$odsetki,
                                              saldo_zadluzenia_po_splacie_raty = kapital,
-                                             nadplata = rata_pobrana[rata] - sum(rata_kapitalowa, rata_odsetkowa)))
+                                             nadplata = rata_pobrana[rata] - sum(rata_kapitalowa, przelicz$odsetki)))
 
 
 
