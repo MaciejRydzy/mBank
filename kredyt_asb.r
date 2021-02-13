@@ -29,13 +29,20 @@ oprocentowanie <- if (model_opr == "mBank") oprocentowanie_mB else c(rep_len(opr
 kapital <- transza[1]
 oprocentowanie <- oprocentowanie / 100
 
+# funkcja zwracajaca ilosc dni pomiedzy dwiema datami
+dni_pom_datami <- function(data_od, data_do) {
+  dni <- as.numeric(as.Date(as.character(data_do), format="%d.%m.%Y") - as.Date(as.character(data_od), format="%d.%m.%Y"))
+  
+  return(dni)
+}
+
 # funkcja obliczajaca rate odsetkowa w danym okresie dla zmiennego kapitalu
 odsetki_zmiana_kap <- function(oprocentowanie, kapital_poczatkowy, transza, data_od, data_transza, data_do) {
   # odsetki do momentu powiekszenia kapitalu
-  odsetki <- as.numeric(as.Date(as.character(data_transza), format="%d.%m.%Y") - as.Date(as.character(data_od), format="%d.%m.%Y")) / 365 * kapital_poczatkowy * oprocentowanie
+  odsetki <- dni_pom_datami(data_od = data_od, data_do = data_transza) / 365 * kapital_poczatkowy * oprocentowanie
   
   # odsetki po zwiekszeniu kapitalu
-  odsetki <- odsetki + as.numeric(as.Date(as.character(data_do), format="%d.%m.%Y") - as.Date(as.character(data_transza), format="%d.%m.%Y") + 1) / 365 * (kapital_poczatkowy + transza) * oprocentowanie
+  odsetki <- odsetki + (dni_pom_datami(data_od = data_transza, data_do = data_do) + 1) / 365 * (kapital_poczatkowy + transza) * oprocentowanie
   
   return(list(kapital = kapital_poczatkowy + transza, odsetki = round(odsetki, digits = 2)))
 }
