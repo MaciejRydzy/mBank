@@ -22,7 +22,7 @@ dni_w_roku_sum <- sum(dni_w_roku)
 raty_pobrane <- rep(c(479.42, 334.69, 306.84, 306.83, 306.84, 318.53, 330.45, 342.35, 332.86, 327.42, 316.68, 290.48), times=c(1,1,1,1,1,2,6,20,10,6,55,70))
 
 # wczytanie danych z kursami walut
-kursy_walut <- read.csv('~/R/mBank/kursy_walut.csv', header = TRUE)
+kursy_walut <- read.csv('~/Documents/BRE/mBank/kursy_walut.csv', header = TRUE)
 
 # daty ksiegowania rat
 data_ksiegowania <- as.vector(kursy_walut$data)
@@ -73,9 +73,9 @@ harmonogram <- data.frame(termin_splaty = data_ksiegowania[1],
 #               rata #2
 #
 ##########################################
-oprocentowanie <- c(3.45,2.45)
+oprocentowanie <- 3.45
 oprocentowanie_mB <- 3.75       # oprocentowanie ustalone przez mBank
-dni_oprocentowania <- c(1,30)   # jeden dzień z oprocentowaniem 3,45% oraz 30 dni z oprocentowaniem 2,45%
+dni_oprocentowania <- 31
 poz_lba_rat <- 358
 ##########################################
 cat("-----------  rata #2  -----------\n")
@@ -87,8 +87,7 @@ rata_calkowita <- amort.period(Loan = kapital, n = poz_lba_rat, i = oprocentowan
 rata_calkowita <- round(rata_calkowita[2], digits = 2)
 
 # wyliczenie raty odsetkowej
-rata_odsetkowa <- sum(kapital * oprocentowanie * dni_oprocentowania)
-rata_odsetkowa <- round(rata_odsetkowa, digits = 2)
+rata_odsetkowa <- round(kapital * oprocentowanie * dni_oprocentowania, digits = 2)
 cat("rata_odsetkowa[2] =", rata_odsetkowa, "\n")
 
 # wyliczenie raty kapitalowej
